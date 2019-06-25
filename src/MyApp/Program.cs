@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using MyApp.Captures;
 using MyApp.Extensions;
+using MyApp.Security;
 
 namespace MyApp
 {
@@ -10,9 +12,53 @@ namespace MyApp
     {
         static void Main(string[] args)
         {
-            DemoCapture();
+            DemoEncrypt();
+            //DemoCapture();
             //DemoBase64();
             Console.Read();
+        }
+
+        private static void DemoEncrypt()
+        {
+            var generateEncryptionKey = SimpleAes.GenerateEncryptionKey();
+            foreach (var b in generateEncryptionKey)
+            {
+                Console.Write(b);
+                Console.Write(",");
+            }
+            Console.WriteLine();
+
+            var generateEncryptionVector = SimpleAes.GenerateEncryptionVector();
+            foreach (var b in generateEncryptionVector)
+            {
+                Console.Write(b);
+                Console.Write(",");
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("------SimpleAes-----");
+            var simpleAes = new SimpleAes();
+            var @join = string.Join(",",Enumerable.Repeat("b2f28db601599e3c1271117acfd9caed1d4abfb3", 1000).ToArray());
+            //var @join = simpleAes.EncryptToString("b2f28db601599e3c1271117acfd9caed1d4abfb3");
+            var encrypt = simpleAes.EncryptToString(@join);
+            Console.WriteLine(encrypt.Length);
+            var decryptString = simpleAes.DecryptString(encrypt);
+            Console.WriteLine(decryptString.Length);
+
+            Console.WriteLine("----StringCompressor----");
+            var stringCompressor = StringCompressor.Instance;
+            var compressString = stringCompressor.CompressString(encrypt);
+            Console.WriteLine(compressString.Length);
+            var decompressString = stringCompressor.DecompressString(compressString);
+            Console.WriteLine(decompressString.Length);
+
+
+            Console.WriteLine("----ZipHelper----");
+            var bytes = ZipHelper.Zip(encrypt);
+            Console.WriteLine(bytes.Length);
+
+            var unzip = ZipHelper.Unzip(bytes);
+            Console.WriteLine(unzip.Length);
         }
 
         static void DemoCapture()

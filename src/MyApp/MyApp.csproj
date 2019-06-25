@@ -58,6 +58,9 @@
     <Compile Include="Extensions\ImageExtensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Security\SimpleAES.cs" />
+    <Compile Include="Security\StringCompressor.cs" />
+    <Compile Include="Security\Zip.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

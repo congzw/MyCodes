@@ -4,6 +4,7 @@ A repository of some of my useful codes.
 
 ## Description
 
+- SimpleAes: simple encrypt and decrypt
 - CaptureHelper: Capture Screen
 - ImageExtensions : Base64Images
 - AsciiTrees: Convert a tree node structure with ascii text
