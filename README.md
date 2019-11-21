@@ -4,6 +4,7 @@ A repository of some of my useful codes.
 
 ## Description
 
+- AsyncCancelDemo
 - ConfigChangeMonitor: auto updated config model when configuration is changed.
 - MyModelHelper: some model helper
 - EnvironmentHelper: check runtime environment

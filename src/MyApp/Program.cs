@@ -5,6 +5,7 @@ using System.Linq;
 using MyApp.Captures;
 using MyApp.Extensions;
 using MyApp.Security;
+using MyApp.Tasks;
 
 namespace MyApp
 {
@@ -12,10 +13,16 @@ namespace MyApp
     {
         static void Main(string[] args)
         {
-            DemoEncrypt();
+            DemoAsyncTaskCancel();
+            //DemoEncrypt();
             //DemoCapture();
             //DemoBase64();
             Console.Read();
+        }
+
+        private static void DemoAsyncTaskCancel()
+        {
+            AsyncCancelDemo.Run();
         }
 
         private static void DemoEncrypt()

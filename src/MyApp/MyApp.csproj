@@ -61,6 +61,7 @@
     <Compile Include="Security\SimpleAES.cs" />
     <Compile Include="Security\StringCompressor.cs" />
     <Compile Include="Security\Zip.cs" />
+    <Compile Include="Tasks\AsyncCancelDemo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
