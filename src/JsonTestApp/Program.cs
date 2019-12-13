@@ -12,70 +12,101 @@ namespace JsonTestApp
     {
         static void Main(string[] args)
         {
-            TestJObject();
+            TestArgs();
+            TestArgsPropValue();
             Console.WriteLine("---------------");
             Console.Read();
         }
 
-        static void TestJObject()
+        static void TestArgs()
         {
-            //var json = JObject.Parse(@"{name:'', foo:'Foo', isOk: true}");
-            //var mock = json.ToObject<Mock>();
+            var newModel = new Mock();
+            newModel.IsOk = false;
+            newModel.Name = "New";
 
-            //var serializeObject = JsonConvert.SerializeObject(mock);
-            //Console.WriteLine(serializeObject);
+            Console.WriteLine("--------Dynamic-------");
+            var blahDynamic = new Blah();
+            dynamic dynamicVo = new ExpandoObject();
+            dynamicVo.IsOk = true;
+            dynamicVo.Name = "A";
+            blahDynamic.Bags["args"] = dynamicVo;
+            Console.WriteLine(JsonConvert.SerializeObject(blahDynamic));
+
+            Console.WriteLine(JsonConvert.SerializeObject(blahDynamic.GetArgs<Mock>()));
+            blahDynamic.SetArgs(newModel);
+            Console.WriteLine(JsonConvert.SerializeObject(blahDynamic.GetArgs<Mock>()));
+
+            Console.WriteLine("-------Model--------");
+            var blahModel = new Blah();
+            var model = new Mock();
+            model.IsOk = true;
+            model.Name = "A";
+            blahModel.Bags["args"] = model;
+            Console.WriteLine(JsonConvert.SerializeObject(blahModel));
             
-            //var blah = new Blah();
-            //blah.Bags["args"] = new Mock();
-            //var blahJson = JsonConvert.SerializeObject(blah);
-            //var blahJObject = JObject.Parse(blahJson);
-            //var blahModel = blahJObject.ToObject<Blah>();
+            Console.WriteLine(JsonConvert.SerializeObject(blahModel.GetArgs<Mock>()));
+            blahModel.SetArgs(newModel);
+            Console.WriteLine(JsonConvert.SerializeObject(blahModel.GetArgs<Mock>()));
 
-            //var blah = new Blah();
-            //blah.SetArgs(new Mock());
-            //var test = blah.GetArgs((Mock)null);
-            
-            //var blah = new Blah();
-            //blah.SetArgs(new Mock());
-            //var blahJson = JsonConvert.SerializeObject(blah);
-            //var blahJObject = JsonConvert.DeserializeObject<Blah>(blahJson);
-
-            //var test = blahJObject.GetArgs((Mock)null);
-            
-            var blah = new Blah();
-            dynamic dObj = new ExpandoObject();
-            dObj.A = "A";
-            dObj.b = "B";
-            blah.Bags["args"] = dObj;
-            var blahJson = JsonConvert.SerializeObject(blah);
-            Console.WriteLine(blahJson);
-
-            var blah2 = new Blah();
+            Console.WriteLine("--------Dic-------");
+            var blahDic = new Blah();
             var dic = new ConcurrentDictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-            dic["A"] = "A";
-            dic["b"] = "B";
-            blah2.Bags["args"] = dic;
+            dic["IsOk"] = true;
+            dic["Name"] = "A";
+            blahDic.Bags["args"] = dic;
+            Console.WriteLine(JsonConvert.SerializeObject(blahDic));
 
-            var mock = new Mock();
-            var mockJson = JsonConvert.SerializeObject(mock);
-            var mockDic = JsonConvert.DeserializeObject<IDictionary<string, object>>(mockJson);
-            foreach (var o in mockDic)
-            {
-                Console.WriteLine(o.Key);
-            }
-            //bad!
-            //dynamic test = dic;
-            //test.C = "C";
-            var blahJson2 = JsonConvert.SerializeObject(blah2);
-            Console.WriteLine(blahJson2);
+            Console.WriteLine(JsonConvert.SerializeObject(blahDic.GetArgs<Mock>()));
+            blahDic.SetArgs(newModel);
+            Console.WriteLine(JsonConvert.SerializeObject(blahDic.GetArgs<Mock>()));
+        }
+
+        static void TestArgsPropValue()
+        {
+            Console.WriteLine("--------Dynamic-------");
+            var blahDynamic = new Blah();
+            dynamic dynamicVo = new ExpandoObject();
+            dynamicVo.IsOk = true;
+            dynamicVo.Name = "A";
+            blahDynamic.Bags["args"] = dynamicVo;
+            var blahJson = JsonConvert.SerializeObject(blahDynamic);
+            Console.WriteLine(blahJson);
+            blahDynamic.SetArgsPropValue("Name", "AA");
+            var dynamicGet = blahDynamic.GetArgsPropValue<string>("Name");
+            Console.WriteLine(dynamicGet);
+
+            Console.WriteLine("-------Model--------");
+            var blahModel = new Blah();
+            var model = new Mock();
+            model.IsOk = true;
+            model.Name = "A";
+            blahModel.Bags["args"] = model;
+            var blahModelJson = JsonConvert.SerializeObject(blahModel);
+            Console.WriteLine(blahModelJson);
+
+            blahModel.SetArgsPropValue("Name", "AA");
+            var modelGet = blahModel.GetArgsPropValue<string>("Name");
+            Console.WriteLine(modelGet);
+
+            Console.WriteLine("--------Dic-------");
+            var blahDic = new Blah();
+            var dic = new ConcurrentDictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            dic["IsOk"] = true;
+            dic["Name"] = "A";
+            blahDic.Bags["args"] = dic;
+            var blahDicJson = JsonConvert.SerializeObject(blahDic);
+            Console.WriteLine(blahDicJson);
+
+            blahDic.SetArgsPropValue("Name", "AA");
+            var dicGet = blahDic.GetArgsPropValue<string>("Name");
+            Console.WriteLine(dicGet);
         }
     }
     
     public class Mock
     {
-        public string Name { get; set; }
-        public string Foo { get; set; }
         public bool IsOk { get; set; }
+        public string Name { get; set; }
     }
 
     public class Blah : IClientMethod

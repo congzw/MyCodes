@@ -16,56 +16,73 @@ namespace JsonTestApp.Helpers
     {
         IDictionary<string, object> Bags { get; set; }
     }
+
     public interface IClientMethod : IHaveBags
     {
         string Method { get; set; }
+    }
+
+    public static class HaveBagsExtensions
+    {
+        public static T GetBagItem<T>(this IHaveBags haveBags, string itemKey, T defaultItemValue = default(T))
+        {
+            if (!haveBags.Bags.ContainsKey(itemKey))
+            {
+                return defaultItemValue;
+            }
+
+            var bagItemValue = haveBags.Bags[itemKey];
+            var bagItemConvertTo = haveBags.BagItemConvertTo<T>(bagItemValue);
+            return bagItemConvertTo;
+        }
+
+        public static void SetBagItem<T>(this IHaveBags haveBags, T args)
+        {
+            haveBags.Bags["args"] = args;
+        }
+
+        public static T BagItemConvertTo<T>(this IHaveBags haveBags, object bagItemValue)
+        {
+            if (bagItemValue is T itemValue)
+            {
+                return itemValue;
+            }
+
+            if (bagItemValue is JObject theJObject)
+            {
+                return theJObject.ToObject<T>();
+            }
+            
+            var json = JsonConvert.SerializeObject(bagItemValue);
+            var argsT = JsonConvert.DeserializeObject<T>(json);
+            return argsT;
+        }
     }
 
     public static class ClientMethodExtensions
     {
         public static TArgs GetArgs<TArgs>(this IClientMethod clientMethod, TArgs defaultArgs = default(TArgs))
         {
-            if (!clientMethod.Bags.ContainsKey("args"))
-            {
-                return defaultArgs;
-            }
-
-            var bagArgs = clientMethod.Bags["args"];
-
-            if (bagArgs is JObject theJObject)
-            {
-                return theJObject.ToObject<TArgs>();
-            }
-
-            if (bagArgs is TArgs)
-            {
-                return (TArgs)bagArgs;
-            }
-
-            var json = JsonConvert.SerializeObject(bagArgs);
-            var argsT = JsonConvert.DeserializeObject<TArgs>(json);
-            return argsT;
+            return clientMethod.GetBagItem<TArgs>("args", defaultArgs);
         }
 
-        public static void SetArgs(this IClientMethod clientMethod, object args)
+        public static void SetArgs<TArgs>(this IClientMethod clientMethod, TArgs args)
         {
-            clientMethod.Bags["args"] = args;
+            clientMethod.SetBagItem(args);
         }
-
-        #region new version to be tested!
-
-        public static T GetArgsPropValue<T>(this IClientMethod clientMethodInvoke, string argsPropKey, T defaultValue)
+        
+        public static T GetArgsPropValue<T>(this IClientMethod clientMethod, string argsPropKey, T defaultValue = default(T))
         {
-            var containsArgs = clientMethodInvoke.Bags.ContainsKey("args");
+            var containsArgs = clientMethod.Bags.ContainsKey("args");
             if (!containsArgs)
             {
                 return defaultValue;
             }
 
-            var theArgs = clientMethodInvoke.Bags["args"];
+            var theArgs = clientMethod.Bags["args"];
             if (theArgs is JObject theJObject)
             {
-                //来自网络序列化
+                //有可能来自网络序列化
                 var jToken = theJObject.GetValue(argsPropKey, StringComparison.OrdinalIgnoreCase);
                 return jToken == null ? defaultValue : jToken.ToObject<T>();
             }
@@ -84,18 +101,18 @@ namespace JsonTestApp.Helpers
             return defaultValue;
         }
 
-        public static void SetArgsPropValue<T>(this IClientMethod clientMethodInvoke, string argsPropKey, object argsPropValue)
+        public static void SetArgsPropValue<T>(this IClientMethod clientMethod, string argsPropKey, T argsPropValue)
         {
-            var containsArgs = clientMethodInvoke.Bags.ContainsKey("args");
+            var containsArgs = clientMethod.Bags.ContainsKey("args");
             if (!containsArgs)
             {
-                clientMethodInvoke.Bags["args"] = new ConcurrentDictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                clientMethod.Bags["args"] = new ConcurrentDictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             }
 
-            var theArgs = clientMethodInvoke.Bags["args"];
+            var theArgs = clientMethod.Bags["args"];
             if (theArgs is JObject theJObject)
             {
-                //来自网络序列化
+                //有可能来自网络序列化
                 theJObject.SetPropertyContent(argsPropKey, argsPropValue);
                 return;
             }
@@ -103,9 +120,8 @@ namespace JsonTestApp.Helpers
             var argsJson = JsonConvert.SerializeObject(theArgs);
             var argsDic = JsonConvert.DeserializeObject<IDictionary<string, object>>(argsJson);
             argsDic[argsPropKey] = argsPropValue;
+            clientMethod.Bags["args"] = argsDic;
         }
-
-        #endregion
     }
 
     public static class JsonExtensions
