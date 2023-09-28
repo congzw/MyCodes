@@ -2,7 +2,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MyHostApp
@@ -11,18 +10,24 @@ namespace MyHostApp
     {
         static void Main(string[] args)
         {
-            Task.Run(() => {
-                CallToolkit(false);
+            //测试结果:createNoWindow = true
+            //1 Console.Wirte不共享窗口
+            //2 主进程退出或强制关闭，被调【程序MyToolkit】或【服务MyToolkitSrv】都能执行完毕
+            var createNoWindow = false;
+            Task.Run(() =>
+            {
+                CallToolkit(createNoWindow);
             });
-
             DemoService.Run();
         }
 
-        static void CallToolkit(bool runNewWindow)
+        static void CallToolkit(bool createNoWindow)
         {
+            //var invokeAppName = "MyToolkit";
+            var invokeAppName = "MyToolkitSrv";
             var currentProcessPath = Environment.ProcessPath;
             var parentRoot = Path.GetFullPath("../../../../../", currentProcessPath);
-            var toolkitPath = Path.Combine(parentRoot, "MyToolkit", "bin", "Debug", "net6.0", "MyToolkit.exe");
+            var toolkitPath = Path.Combine(parentRoot, invokeAppName, "bin", "Debug", "net6.0", $"{invokeAppName}.exe");
             try
             {
                 using (Process myProcess = new Process())
@@ -31,12 +36,9 @@ namespace MyHostApp
 
                     startInfo.FileName = toolkitPath;
                     startInfo.UseShellExecute = false;
-                    startInfo.CreateNoWindow = !runNewWindow;
+                    startInfo.CreateNoWindow = createNoWindow;
                     myProcess.Start();
-                    // This code assumes the process you are starting will terminate itself.
-                    // Given that it is started without a window so you cannot terminate it
-                    // on the desktop, it must terminate itself or you can do it programmatically
-                    // from this application using the Kill method.
+                    myProcess.WaitForExit();
                 }
             }
             catch (Exception e)

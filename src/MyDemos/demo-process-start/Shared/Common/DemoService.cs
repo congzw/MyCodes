@@ -9,14 +9,23 @@ namespace Common
     {
         public static void Run()
         {
-            var appName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().GetName().Name);
-            var logHelper = LogHelper.Create(appName);
             for (int i = 0; i < 10; i++)
             {
-                logHelper.Log(i);
+                Log(i);
                 Thread.Sleep(1000);
             }
-            logHelper.Log("== completed ==");
+            Log("== completed ==");
+        }
+
+        private static LogHelper logHelper = null;
+        public static void Log(object msg)
+        {
+            if (logHelper == null)
+            {
+                var appName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().GetName().Name);
+                logHelper = LogHelper.Create(appName);
+            }
+            logHelper.Log(msg);
         }
     }
 }
